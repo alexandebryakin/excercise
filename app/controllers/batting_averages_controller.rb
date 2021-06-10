@@ -4,7 +4,7 @@ class BattingAveragesController < ActionController::API
   def process_file
     content = params[:batting_file].read
     batters = Batter.new(content)
-    teams = Team.new(File.read("#{Rails.root}/db/teams.csv"))
+    teams = Team.new(teams_csv_content)
 
     batters = batters.joins(teams, Team::FIELD_ID)
     batters.calculate_batting_averages!
@@ -21,5 +21,13 @@ class BattingAveragesController < ActionController::API
     result = batters.fetch!.uniq
 
     render json: BatterSerializer.new(result).as_json
+  end
+
+  private
+
+  def teams_csv_content
+    return params[:teams_file].read if params[:teams_file].present?
+
+    File.read("#{Rails.root}/db/teams.csv")
   end
 end
